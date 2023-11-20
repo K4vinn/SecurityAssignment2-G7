@@ -5,35 +5,34 @@ if (isset($_POST["submit"])) {
     $dbc = mysqli_connect("localhost", "root", "");
     mysqli_select_db($dbc, "clinic_reservation");
 
-    // Get the last user_id from user_table
-    $query = "SELECT user_id FROM user_table ORDER BY user_id DESC LIMIT 1";
+    // Get the last doctor_id from user_table
+    $query = "SELECT doctor_id FROM doctor_table ORDER BY doctor_id DESC LIMIT 1";
     $stmt = mysqli_prepare($dbc, $query);
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
 
     if ($row = mysqli_fetch_assoc($result)) {
-        $lastId = $row['user_id'];
+        $lastId = $row['doctor_id'];
         $numericPart = (int)substr($lastId, 1);
 
         $newNumericPart = $numericPart + 1;
 
-        $newId = 'U' . sprintf('%03d', $newNumericPart);
+        $newId = 'A' . sprintf('%03d', $newNumericPart);
     } else {
-        $newId = 'U001';
+        $newId = 'A001';
     }
 
     mysqli_stmt_close($stmt);
-
+    $password = $_POST['password'];
     $name = $_POST['name'];
     $gender = $_POST['gender'];
+    $email = $_POST['email'];
     $dob = $_POST['dateBirth'];
+    $phoneNo = $_POST['phoneNo'];
     $address = $_POST['address'];
     $city = $_POST['city'];
     $zip = $_POST['zip'];
     $state = $_POST['state'];
-    $email = $_POST['email'];
-    $phoneNo = $_POST['phoneNo'];
-    $password = $_POST['password'];
     $encryptedPassword = password_hash($password, PASSWORD_DEFAULT); 
 
     if (
@@ -42,27 +41,27 @@ if (isset($_POST["submit"])) {
         preg_match('/^(?=.*[A-Z])(?=.*\d)/', $password)  // Check for at least one uppercase letter and one number
     ) {
 
-        $query2 = "SELECT * FROM user_table WHERE user_email = ?";
+        $query2 = "SELECT * FROM doctor_table WHERE doctor_email = ?";
         $stmt2 = mysqli_prepare($dbc, $query2);
         mysqli_stmt_bind_param($stmt2, "s", $email);
         mysqli_stmt_execute($stmt2);
         $result2 = mysqli_stmt_get_result($stmt2);
 
         if (mysqli_num_rows($result2) > 0) {
-            echo "<script>alert('Sorry.. This email is already registered!'); window.location.href = 'register.php';</script>";
+            echo "<script>alert('Sorry.. This email is already existed. Check with HR!'); window.location.href = 'addNewDoctor.php';</script>";
         }
 
         // Insert user information into user_table
-        $query3 = "INSERT INTO user_table (user_id, user_password, user_name, user_gender, user_email, user_dob, user_phoneNo, user_address, address_city, address_zip, address_state) "
+        $query3 = "INSERT INTO doctor_table (doctor_id, doctor_password, doctor_name, doctor_gender, doctor_email, doctor_dob, doctor_phoneNo, doctor_address, doctor_city, doctor_zip, doctor_state) "
             . "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         $stmt3 = mysqli_prepare($dbc, $query3);
         mysqli_stmt_bind_param($stmt3, "sssssssssss", $newId, $encryptedPassword, $name, $gender, $email, $dob, $phoneNo, $address, $city, $zip, $state);
         mysqli_stmt_execute($stmt3);
 
-        echo "<script> alert('You have successfully registered an account, log in to your account now!'); window.location.href = 'login.php';</script>";
+        echo "<script> alert('You have successfully added new doctor!'); window.location.href = 'addNewDoctor.php';</script>";
     } else {
-        echo "<script> alert('Password must be more than 8 characters, contains at least one number and one capital letter!'); window.location='register.php'; </script>";
+        echo "<script> alert('Password must be more than 8 characters, contains at least one number and one capital letter!'); window.location='addNewDoctor.php'; </script>";
     }
 }
 ?>
@@ -351,175 +350,162 @@ if (isset($_POST["submit"])) {
     
     <body>
         
-        <nav class="navbar navbar-expand-lg navbar-light bg-white">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="homepage.php"> <img src="Images/Logo.png" width="110" height="100" align="center"></a><h1>Clinic Harmony </h1>
-                <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="toggler-icon top-bar"></span>
-                    <span class="toggler-icon middle-bar"></span>
-                    <span class="toggler-icon bottom-bar"></span>
-                </button>
+    <nav class="navbar navbar-expand-lg navbar-light bg-white">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="homepage.php"> <img src="Images/Logo.png" width="110" height="100" align="center"></a><h1 class="title">Clinic Harmony </h1>
+                    <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+                            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="toggler-icon top-bar"></span>
+                        <span class="toggler-icon middle-bar"></span>
+                        <span class="toggler-icon bottom-bar"></span>
+                    </button>
 
-               <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item">
-                            <a class="nav-link" aria-current="page" href="homepage.php">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="about.php">About Us</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="services.php">Services</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="contactUs.php">Contact Us</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="login.php">Login</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="register.php" style="background-color: #475993; color: white; border-radius: .5rem;">Register</a>
-                        </li>
-                    </ul>
-                    
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                            <li class="nav-item">
+                                <a class="nav-link" href="addNewDoctor.php">Add New Doctor</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="adminTimetable.php">Timetable</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="logout.php">Logout</a>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
-        </div>
-    </nav>
+            </nav>
         
         <div class="line-1"></div>
 
             <h1 class="title"><center>Register</center></h1>
            
-            <form action="register.php"  method="post" class="row g-3 needs-validation" novalidate>
+            <form action="addNewDoctor.php"  method="post" class="row g-3 needs-validation" novalidate>
             
-            <div class="col-md-6">
-                <label for="validationCustom02" class="form-label">Name : </label>
-                <input name="name" type="text" class="form-control  form-control-lg" id="validationCustom02" placeholder="Enter your name" required>
-                <div class="valid-feedback">
-                    Looks good!
-                </div>
-                <div class="invalid-feedback">
-                      Please provide a name.
-                </div>
-            </div> 
-
-           <div class="col-md-6">
-                <label for="validationCustom03" class="form-label">Password :</label>
-                <div class="col-auto">
-                  <input name="password" type="password" id="validationCustom03" class="form-control  form-control-lg" aria-describedby="passwordHelpInline" required>
-                </div>
-                <div class="col-auto">
-                  <span id="passwordHelpInline" class="form-text">
-                    Must be 8-20 characters long.
-                  </span>
-                </div>
-                <div class="invalid-feedback">
-                      Please provide a password.
-                </div>
-            </div>
-                
-            
-                
-            <div class="col-md-6">
-                <label for="validationFormCheck1" class="form-label">Gender </label>
-                
-                <div class="form-check">
-                    <input type="radio" class="form-check-input" id="validationFormCheck1" name="gender" value="male" required>
-                    <label class="form-check-label" for="validationFormCheck1">Male</label>
-                </div>
-                
-                <div class="form-check mb-3">
-                    <input type="radio" class="form-check-input" id="validationFormCheck2" name="gender" value="female" required>
-                    <label class="form-check-label" for="validationFormCheck2">Female</label>
+                <div class="col-md-6">
+                    <label for="validationCustom02" class="form-label">Name : </label>
+                    <input name="name" type="text" class="form-control  form-control-lg" id="validationCustom02" placeholder="Enter your name" required>
+                    <div class="valid-feedback">
+                        Looks good!
+                    </div>
                     <div class="invalid-feedback">
-                        Please select your gender.
+                        Please provide a name.
+                    </div>
+                </div> 
+
+                <div class="col-md-6">
+                    <label for="validationCustom03" class="form-label">Password :</label>
+                    <div class="col-auto">
+                    <input name="password" type="password" id="validationCustom03" class="form-control  form-control-lg" aria-describedby="passwordHelpInline" required>
+                    </div>
+                    <div class="col-auto">
+                    <span id="passwordHelpInline" class="form-text">
+                        Must be 8-20 characters long.
+                    </span>
+                    </div>
+                    <div class="invalid-feedback">
+                        Please provide a password.
                     </div>
                 </div>
-            </div>
+                    
+                <div class="col-md-6">
+                    <label for="validationFormCheck1" class="form-label">Gender </label>
+                    
+                    <div class="form-check">
+                        <input type="radio" class="form-check-input" id="validationFormCheck1" name="gender" value="male" required>
+                        <label class="form-check-label" for="validationFormCheck1">Male</label>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input type="radio" class="form-check-input" id="validationFormCheck2" name="gender" value="female" required>
+                        <label class="form-check-label" for="validationFormCheck2">Female</label>
+                        <div class="invalid-feedback">
+                            Please select your gender.
+                        </div>
+                    </div>
+                </div>
 
+                <div class="col-md-6">
+                <label for="validationCustom04" class="form-label">Date of Birth : </label>
+                <input type='date' id='dateBirth' class="form-control  form-control-lg" name='dateBirth' required>
+                <div class="invalid-feedback">
+                    Please provide select a date of birth.
+                </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="validationCustom09" class="form-label">Email : </label>
+                    <input name="email" type="text" class="form-control form-control-lg" id="validationCustom09" placeholder="Enter your email" required>
+                    <div class="valid-feedback">
+                        Looks good!
+                    </div>
+                    <div class="invalid-feedback">
+                        Please provide a state.
+                    </div>
+                </div>
             
-            <div class="col-md-6">
-              <label for="validationCustom04" class="form-label">Date of Birth : </label>
-              <input type='date' id='dateBirth' class="form-control  form-control-lg" name='dateBirth' required>
-              <div class="invalid-feedback">
-                Please provide select a date of birth.
-              </div>
-            </div>
-
-            <div class="col-md-6">
-                <label for="validationCustom09" class="form-label">Email : </label>
-                <input name="email" type="text" class="form-control form-control-lg" id="validationCustom09" placeholder="Enter your email" required>
-                <div class="valid-feedback">
-                    Looks good!
+                <div class="col-md-6">
+                    <label for="validationCustom10" class="form-label">Phone number : </label>
+                    <input name="phoneNo" type="text" class="form-control form-control-lg" id="validationCustom10" placeholder="Enter your phone number" required>
+                    <div class="valid-feedback">
+                        Looks good!
+                    </div>
+                    <div class="invalid-feedback">
+                        Please provide a state.
+                    </div>
+                </div>             
+            
+                <div class="col-md-6">
+                    <label for="validationCustom06" class="form-label">Address : </label>
+                    <input name="address" type="text" class="form-control  form-control-lg" id="validationCustom06" placeholder="Enter your address" required>
+                    <div class="valid-feedback">
+                        Looks good!
+                    </div>
+                    <div class="invalid-feedback">
+                        Please provide an address.
+                    </div>
                 </div>
-                <div class="invalid-feedback">
-                      Please provide a state.
+            
+                <div class="col-md-6">
+                    <label for="validationCustom07" class="form-label">City : </label>
+                    <input name="city" type="text" class="form-control  form-control-lg" id="validationCustom07" placeholder="Enter your city" required>
+                    <div class="valid-feedback">
+                        Looks good!
+                    </div>
+                    <div class="invalid-feedback">
+                        Please provide a city.
+                    </div>
                 </div>
-            </div>
-           
-           <div class="col-md-6">
-                <label for="validationCustom10" class="form-label">Phone number : </label>
-                <input name="phoneNo" type="text" class="form-control form-control-lg" id="validationCustom10" placeholder="Enter your phone number" required>
-                <div class="valid-feedback">
-                    Looks good!
+            
+                <div class="col-md-6">
+                    <label for="validationCustom08" class="form-label">ZIP or Postal Code : </label>
+                    <input name="zip" type="text" class="form-control form-control-lg" id="validationCustom08" placeholder="XXXXX" required>
+                    <div class="valid-feedback">
+                        Looks good!
+                    </div>
+                    <div class="invalid-feedback">
+                        Please provide a ZIP or postal code.
+                    </div>
                 </div>
-                <div class="invalid-feedback">
-                      Please provide a state.
+            
+                <div class="col-md-6">
+                    <label for="validationCustom09" class="form-label">State : </label>
+                    <input name="state" type="text" class="form-control form-control-lg" id="validationCustom09" placeholder="Enter your state" required>
+                    <div class="valid-feedback">
+                        Looks good!
+                    </div>
+                    <div class="invalid-feedback">
+                        Please provide a state.
+                    </div>
+                </div>          
+            
+                <div class="col-6" align="right">
+                    <input class="btn" name="submit" type="submit" value="Submit">
                 </div>
-            </div>             
-           
-            <div class="col-md-6">
-                <label for="validationCustom06" class="form-label">Address : </label>
-                <input name="address" type="text" class="form-control  form-control-lg" id="validationCustom06" placeholder="Enter your address" required>
-                <div class="valid-feedback">
-                    Looks good!
+                    <div class="col-6">
+                    <button class="btn btn-primary" type="reset">Reset</button>
                 </div>
-                <div class="invalid-feedback">
-                      Please provide an address.
-                </div>
-            </div>
-           
-           <div class="col-md-6">
-                <label for="validationCustom07" class="form-label">City : </label>
-                <input name="city" type="text" class="form-control  form-control-lg" id="validationCustom07" placeholder="Enter your city" required>
-                <div class="valid-feedback">
-                    Looks good!
-                </div>
-                <div class="invalid-feedback">
-                      Please provide a city.
-                </div>
-            </div>
-           
-           <div class="col-md-6">
-                <label for="validationCustom08" class="form-label">ZIP or Postal Code : </label>
-                <input name="zip" type="text" class="form-control form-control-lg" id="validationCustom08" placeholder="XXXXX" required>
-                <div class="valid-feedback">
-                    Looks good!
-                </div>
-                <div class="invalid-feedback">
-                      Please provide a ZIP or postal code.
-                </div>
-            </div>
-           
-           <div class="col-md-6">
-                <label for="validationCustom09" class="form-label">State : </label>
-                <input name="state" type="text" class="form-control form-control-lg" id="validationCustom09" placeholder="Enter your state" required>
-                <div class="valid-feedback">
-                    Looks good!
-                </div>
-                <div class="invalid-feedback">
-                      Please provide a state.
-                </div>
-            </div>          
-           
-            <div class="col-6" align="right">
-                <input class="btn" name="submit" type="submit" value="Submit">
-            </div>
-                <div class="col-6">
-                <button class="btn btn-primary" type="reset">Reset</button>
-            </div>
-</form>
+            </form>
         
       <footer>
             

@@ -24,10 +24,10 @@ if (isset($_POST['save'])) {
     $stmt1 = mysqli_prepare($dbc, $query1);
     mysqli_stmt_bind_param($stmt1, "s", $email);
     mysqli_stmt_execute($stmt1);
-    $result2 = mysqli_stmt_get_result($stmt1);
+    $result1 = mysqli_stmt_get_result($stmt1);
 
-    while ($row2 = mysqli_fetch_array($result2)) {
-        $user_id = $row2['user_id'];
+    while ($row = mysqli_fetch_array($result1)) {
+        $user_id = $row['user_id'];
     }
 
     $query2 = "INSERT INTO booking_table (user_id, user_name, user_gender, user_email, user_phoneNo, start, end, status, doctor_name) "

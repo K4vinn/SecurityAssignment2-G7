@@ -40,9 +40,7 @@ if (isset($_POST["send"])) {
             echo "<script>alert('Email could not be sent. Mailer Error: {$mail->ErrorInfo}');</script>";
         }
     }
-   
   }
-
 ?>
 
 <!DOCTYPE html>

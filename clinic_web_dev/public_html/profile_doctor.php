@@ -128,7 +128,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this
                         <div class="collapse navbar-collapse" id="navbarSupportedContent">
                             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                                 <li class="nav-item">
-                                    <a class="nav-link" href="timetable.php">Book An Appointment</a>
+                                    <a class="nav-link" href="timetable_doctor.php">Appointment Schedule</a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link" href="profile.php">Profile</a>

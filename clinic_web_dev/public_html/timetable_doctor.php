@@ -118,8 +118,7 @@ mysqli_select_db($dbc, "clinic_reservation");
                 margin-bottom: 10px;
             }
        }
-           
-        
+
     </style>
     
     <body>
@@ -202,20 +201,21 @@ mysqli_select_db($dbc, "clinic_reservation");
 <?php
    $email = $_SESSION['identifier'];
 
-   $query2 = "SELECT * FROM doctor_table WHERE doctor_email = ?";
-   $stmt1 = mysqli_prepare($dbc, $query2);
+   $query1 = "SELECT * FROM doctor_table WHERE doctor_email = ?";
+   $stmt1 = mysqli_prepare($dbc, $query1);
    mysqli_stmt_bind_param($stmt1, "s", $email);
    mysqli_stmt_execute($stmt1);
-   $result2 = mysqli_stmt_get_result($stmt1);
+   $result = mysqli_stmt_get_result($stmt1);
    
    $sched_res = [];
    
-   while ($row2 = mysqli_fetch_array($result2)) {
-       $doctor_name = $row2['doctor_name'];
+   while ($row = mysqli_fetch_array($result)) {
+       $doctor_name = $row['doctor_name'];
+       $bookingStatus = "Approved";
    
-       $querySchedules = "SELECT * FROM booking_table WHERE doctor_name=?";
+       $querySchedules = "SELECT * FROM booking_table WHERE doctor_name=? && `status`=?";
        $stmtSchedules = mysqli_prepare($dbc, $querySchedules);
-       mysqli_stmt_bind_param($stmtSchedules, "s", $doctor_name);
+       mysqli_stmt_bind_param($stmtSchedules, "ss", $doctor_name, $bookingStatus);
        mysqli_stmt_execute($stmtSchedules);
    
        $resultSchedules = mysqli_stmt_get_result($stmtSchedules);
@@ -234,8 +234,6 @@ mysqli_select_db($dbc, "clinic_reservation");
    mysqli_stmt_close($stmt1);
    
 ?>
-
-
     <footer> 
         
             <P>Address : 18, Jalan Putih, 11500 Jelutong, Pulau Pinang</P>

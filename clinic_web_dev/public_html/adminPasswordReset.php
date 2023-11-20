@@ -1,52 +1,24 @@
 <?php
-        if(isset($_POST['signin'])){ 
-            session_start();
+    if(isset($_POST['reset'])){ 
+        $passwordRetrieved = $_POST['password'];
+        $encryptedPassword = password_hash($passwordRetrieved, PASSWORD_DEFAULT); 
 
-            $dbc = mysqli_connect("localhost", "root", "");
-            mysqli_select_db($dbc, "clinic_reservation");   
+        $dbc=mysqli_connect("localhost","root","");
+        mysqli_select_db($dbc, "clinic_reservation");
             
-            $email = $_POST['email'];
-            $password = $_POST['password'];
-            
-            // Prepare the SQL statement
-            $query1 = "SELECT doctor_email, doctor_password FROM doctor_table WHERE doctor_email = ?";
-            $stmt = mysqli_prepare($dbc, $query1);
-            mysqli_stmt_bind_param($stmt, "s", $email);
-            mysqli_stmt_execute($stmt);
-            
-            $result = mysqli_stmt_get_result($stmt);
-            
-            if ($row = mysqli_fetch_assoc($result)) {
-                if(password_verify($password, $row['doctor_password'])) {
-                    echo "<script>alert('You have successfully logged in!'); window.location = 'timetable_doctor.php';</script>";
-                    $_SESSION['identifier'] = $email;
-                } else {
-                    echo "<script>alert('Login failed! Please try again.'); window.location = 'login.php';</script>";
-                }
-            }
-            mysqli_stmt_close($stmt);
+        $query = "UPDATE admin_table SET admin_password = ? WHERE admin_password = ?";
 
-            // Prepare the SQL statement
-            $query2 = "SELECT user_email, user_password FROM user_table WHERE user_email = ?";
-            $stmt2 = mysqli_prepare($dbc, $query2);
-            mysqli_stmt_bind_param($stmt2, "s", $email);
-            mysqli_stmt_execute($stmt2);
-             
-            $result2 = mysqli_stmt_get_result($stmt2);
-             
-            if ($row = mysqli_fetch_assoc($result2)) {
-                if(password_verify($password, $row['user_password'])) {
-                    echo "<script>alert('You have successfully logged in!'); window.location = 'timetable.php';</script>";
-                    $_SESSION['identifier'] = $email;
-                } else {
-                    echo "<script>alert('Login failed! Please try again.'); window.location = 'login.php';</script>";
-                }
-            }
-             
-            mysqli_stmt_close($stmt);
-             
-            mysqli_close($dbc);
+        $stmt1 = mysqli_prepare($dbc, $query);
+        mysqli_stmt_bind_param($stmt1, "ss", $encryptedPassword, $_POST['oldPassword']);
+        mysqli_stmt_execute($stmt1);
+
+        if(mysqli_stmt_affected_rows($stmt1) > 0) {
+            echo "<script> alert('Password reset complete. Please log in to continue.'); window.location.href = 'login_admin.php';</script>";
         }
+        else{
+            echo "<script> alert('Unable to reset password. Please contact IT and HR'); window.location.href = 'login_admin.php';</script>";
+        }
+    }  
 ?>
 
 <!DOCTYPE html>
@@ -56,7 +28,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this
 -->
 <html>
         <head>
-        <title>Clinic Harmony</title>
+        <title>Clinic Harmony's Admin Portal</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
@@ -361,66 +333,41 @@ Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this
                     <span class="toggler-icon bottom-bar"></span>
                 </button>
 
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item">
-                            <a class="nav-link" aria-current="page" href="homepage.php">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="about.php">About Us</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="services.php">Services</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="contactUs.php">Contact Us</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="login.php" style="background-color: #475993; color: white; border-radius: .5rem;">Login</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="register.php">Register</a>
-                        </li>
-                    </ul>
-                    
-                </div>
+                
         </div>
     </nav>          
         
         <div class="line-1"></div>
 
-            <h1 class="title"><center>Login</center></h1>
+            <h3 class="title"><center>Admin Change Default Password</center></h3>
             
-            <form action="#" method="post" class="row g-3 needs-validation justify-content-md-center" novalidate>
- 
-                <div class="col-md-8">
-                    <label for="validationCustom01" class="form-label">Email address : </label>
-                    <input name="email" type="text" class="form-control" id="validationCustom01" placeholder="Enter your email address" required>
-                    <div class="invalid-feedback">
-                        Please enter your email address.
-                    </div>
-                </div>
+            <form action="adminPasswordReset.php" method="post" class="row g-3 needs-validation justify-content-md-center" novalidate>
 
-               <div class="col-md-8">
-                    <label for="inputPassword6" class="form-label">Password :</label>
+                <div class="col-md-8">
+                    <label for="inputPassword6" class="form-label">Old Password:</label>
                     <div class="col-auto">
-                      <input name="password" type="password" id="inputPassword6" class="form-control" placeholder="Enter your password" aria-describedby="passwordHelpInline" required>
+                      <input name="oldPassword" type="password" id="inputPassword6" class="form-control" placeholder="Enter your currrent default password" aria-describedby="passwordHelpInline" required>
                     </div>
                     <div class="invalid-feedback">
-                          Please enter your password.
+                          Old Default Password Provided Incorrect.
+                    </div>
+               </div>
+ 
+               <div class="col-md-8">
+                    <label for="inputPassword6" class="form-label">New Password:</label>
+                    <div class="col-auto">
+                      <input name="password" type="password" id="inputPassword6" class="form-control" placeholder="Enter your new password" aria-describedby="passwordHelpInline" required>
+                    </div>
+                    <div class="invalid-feedback">
+                          New Password Provided Incorrect.
                     </div>
                </div>
 
-
                 <div class="col-md-8">
-                    <center><input class="btn" name="signin" type="submit" value="Login"></center>
+                    <center><input class="btn" name="reset" type="submit" value="Reset"></center>
                 </div>
             </form>
             
-         <div id="register">
-            <p><a href="register.php">Create an account now!</a> </p>
-        </div>
-
             
       <footer>
             
