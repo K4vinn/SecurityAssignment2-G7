@@ -6,22 +6,30 @@ require 'PHPMailer/src/Exception.php';
 require 'PHPMailer/src/PHPMailer.php';
 require 'PHPMailer/src/SMTP.php';
 
-        if(isset($_POST['signin'])){ 
-            session_start();
+// Generate CSRF token
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 
+if (isset($_POST['signin'])) {
+    if (!empty($_POST['csrf_token']) && hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        $dbc = mysqli_connect("localhost", "root", "");
+        mysqli_select_db($dbc, "clinic_reservation");
 
-            $email = $_POST["email"];
-            $password = $_POST['password']; 
-       
-            $dbc=mysqli_connect("localhost","root","");
-            mysqli_select_db($dbc, "clinic_reservation");
-                    
-            $result=mysqli_query($dbc, "Select * from user_table where user_email = '$email'");
+        $email = $_POST['email'];
+        $password = $_POST['password'];
 
-            $row=mysqli_fetch_array($result);
+        // Prepare the SQL statement
+        $query1 = "SELECT doctor_email, doctor_password FROM doctor_table WHERE doctor_email = ?";
+        $stmt = mysqli_prepare($dbc, $query1);
+        mysqli_stmt_bind_param($stmt, "s", $email);
+        mysqli_stmt_execute($stmt);
 
-            if ($row['user_email']== $email && $row['user_password'] == $password){
+        $result = mysqli_stmt_get_result($stmt);
 
+        if ($row = mysqli_fetch_assoc($result)) {
+            if (password_verify($password, $row['doctor_password'])) {
+                
                 $otp_code = (int)substr(number_format(time() * rand(), 0, '', ''), 0, 6);
                 $_SESSION['otp_code'] = $otp_code;
                 $mail = new PHPMailer(true);
@@ -43,49 +51,73 @@ require 'PHPMailer/src/SMTP.php';
                 $mail->Body = 'Dear Customer, your OTP is '.$otp_code.', thank you for choosing Clinic Harmony!';
 
                 $mail->send();
-                echo "<script>window.location= \"login_otp.php\"; </script>";
-
-                $_SESSION['identifier']=$_POST['email'];
-                $_SESSION['user_type']='user';
-                include("sessionexpirationmodule/session_expiration.php");   
-            }
-            
-            $result=mysqli_query($dbc, "Select * from doctor_table where doctor_email = '$email'");
-
-            $row=mysqli_fetch_array($result);
-
-            if ($row['doctor_email']== $email && $row['doctor_password'] == $password){
-                $otp_code = (int)substr(number_format(time() * rand(), 0, '', ''), 0, 6);
-                $_SESSION['otp_code'] = $otp_code;
-                $mail = new PHPMailer(true);
-
-                //Server settings
-                $mail->isSMTP();
-                $mail->Host = 'smtp.gmail.com';
-                $mail->SMTPAuth = true;
-                $mail->Username = 'tengteng8132002@gmail.com';
-                $mail->Password = 'zzvmemdazozxzadq';
-                $mail->SMTPSecure = 'tls';  // or 'ssl' for port 465
-                $mail->Port = 587;  // or 465 for SSL
-
-                $mail->setFrom('tengteng8132002@gmail.com');
-                $mail->addAddress($email);
-                $mail->isHTML(true);
-
-                $mail->Subject = 'OTP - Clinic Harmony';
-                $mail->Body = 'Dear Customer, your OTP is '.$otp_code.', thank you for choosing Clinic Harmony!';
-
-                $mail->send();
-                echo "<script>window.location= \"login_otp.php\"; </script>";
-
-                $_SESSION['identifier']=$_POST['email']; 
                 $_SESSION['user_type']='doctor';
-                include("sessionexpirationmodule/session_expiration.php");  
+                $_SESSION['identifier'] = $email;
 
-            }else{
-                echo "<script> alert('Login failed! Please try again');window.location= \"login.php\"; </script>";
-            }   
-            }  
+                echo "<script>window.location= \"login_otp.php\"; </script>";
+                include("sessionexpirationmodule/session_expiration.php"); 
+                
+            } else {
+                echo "<script>alert('Login failed! Please try again.'); window.location = 'login.php';</script>";
+            }
+        }
+
+        mysqli_stmt_close($stmt);
+
+        // Prepare the SQL statement
+        $query2 = "SELECT user_email, user_password FROM user_table WHERE user_email = ?";
+        $stmt2 = mysqli_prepare($dbc, $query2);
+        mysqli_stmt_bind_param($stmt2, "s", $email);
+        mysqli_stmt_execute($stmt2);
+
+        $result2 = mysqli_stmt_get_result($stmt2);
+
+        if ($row = mysqli_fetch_assoc($result2)) {
+            if (password_verify($password, $row['user_password'])) {
+                $otp_code = (int)substr(number_format(time() * rand(), 0, '', ''), 0, 6);
+                $_SESSION['otp_code'] = $otp_code;
+                $mail = new PHPMailer(true);
+
+                //Server settings
+                $mail->isSMTP();
+                $mail->Host = 'smtp.gmail.com';
+                $mail->SMTPAuth = true;
+                $mail->Username = 'tengteng8132002@gmail.com';
+                $mail->Password = 'zzvmemdazozxzadq';
+                $mail->SMTPSecure = 'tls';  // or 'ssl' for port 465
+                $mail->Port = 587;  // or 465 for SSL
+
+                $mail->setFrom('tengteng8132002@gmail.com');
+                $mail->addAddress($email);
+                $mail->isHTML(true);
+
+                $mail->Subject = 'OTP - Clinic Harmony';
+                $mail->Body = 'Dear Customer, your OTP is '.$otp_code.', thank you for choosing Clinic Harmony!';
+
+                $mail->send();
+                $_SESSION['user_type']='user';
+                $_SESSION['identifier']=$_POST['email'];
+                
+                include("sessionexpirationmodule/session_expiration.php"); 
+
+                echo "<script>window.location= \"login_otp.php\"; </script>";
+
+                 
+            } else {
+                echo "<script>alert('Login failed! Please try again.'); window.location = 'login.php';</script>";
+            }
+        }
+
+        mysqli_stmt_close($stmt2);
+
+        mysqli_close($dbc);
+    } else {
+        // You were missing 'echo' here
+        echo "<script>alert('CSRF token validation failed.'); window.location = 'login.php';</script>";
+    }
+}
+
+
 ?>
 
 <!DOCTYPE html>
