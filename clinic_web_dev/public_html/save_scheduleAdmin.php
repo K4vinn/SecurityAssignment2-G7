@@ -8,6 +8,7 @@ require 'PHPMailer/src/PHPMailer.php';
 require 'PHPMailer/src/SMTP.php';
 
 session_start();
+include("sessionexpirationmodule/session_expiration.php"); 
 
 if (!empty($_SESSION['identifier'])) {
 

@@ -1,91 +1,34 @@
 <?php
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
+session_start();
+    
+$email = $_SESSION['identifier'];
+$user_type = $_SESSION['user_type'];
+$otp_code = $_SESSION['otp_code'];
 
-require 'PHPMailer/src/Exception.php';
-require 'PHPMailer/src/PHPMailer.php';
-require 'PHPMailer/src/SMTP.php';
+if(isset($_POST['otp_submit'])){ 
 
-        if(isset($_POST['signin'])){ 
-            session_start();
+    $form_otp = $_POST['otp'];
+
+    if ($form_otp == $otp_code){
+        if($user_type == 'user'){
+            echo "<script> alert('You have successfully login!');window.location= \"timetable.php\"; </script>";
+        }
+        else{
+            echo "<script> alert('You have successfully login!');window.location= \"timetable_doctor.php\"; </script>";
+        }
+    }else{
+
+        session_destroy();
+        echo "<script> alert('Wrong OTP entered please retry!');window.location= \"login.php\"; </script>";
+
+    }
+           
+        
+}
 
 
-            $email = $_POST["email"];
-            $password = $_POST['password']; 
-       
-            $dbc=mysqli_connect("localhost","root","");
-            mysqli_select_db($dbc, "clinic_reservation");
-                    
-            $result=mysqli_query($dbc, "Select * from user_table where user_email = '$email'");
 
-            $row=mysqli_fetch_array($result);
 
-            if ($row['user_email']== $email && $row['user_password'] == $password){
-
-                $otp_code = (int)substr(number_format(time() * rand(), 0, '', ''), 0, 6);
-                $_SESSION['otp_code'] = $otp_code;
-                $mail = new PHPMailer(true);
-
-                //Server settings
-                $mail->isSMTP();
-                $mail->Host = 'smtp.gmail.com';
-                $mail->SMTPAuth = true;
-                $mail->Username = 'tengteng8132002@gmail.com';
-                $mail->Password = 'zzvmemdazozxzadq';
-                $mail->SMTPSecure = 'tls';  // or 'ssl' for port 465
-                $mail->Port = 587;  // or 465 for SSL
-
-                $mail->setFrom('tengteng8132002@gmail.com');
-                $mail->addAddress($email);
-                $mail->isHTML(true);
-
-                $mail->Subject = 'OTP - Clinic Harmony';
-                $mail->Body = 'Dear Customer, your OTP is '.$otp_code.', thank you for choosing Clinic Harmony!';
-
-                $mail->send();
-                echo "<script>window.location= \"login_otp.php\"; </script>";
-
-                $_SESSION['identifier']=$_POST['email'];
-                $_SESSION['user_type']='user';
-                include("sessionexpirationmodule/session_expiration.php");   
-            }
-            
-            $result=mysqli_query($dbc, "Select * from doctor_table where doctor_email = '$email'");
-
-            $row=mysqli_fetch_array($result);
-
-            if ($row['doctor_email']== $email && $row['doctor_password'] == $password){
-                $otp_code = (int)substr(number_format(time() * rand(), 0, '', ''), 0, 6);
-                $_SESSION['otp_code'] = $otp_code;
-                $mail = new PHPMailer(true);
-
-                //Server settings
-                $mail->isSMTP();
-                $mail->Host = 'smtp.gmail.com';
-                $mail->SMTPAuth = true;
-                $mail->Username = 'tengteng8132002@gmail.com';
-                $mail->Password = 'zzvmemdazozxzadq';
-                $mail->SMTPSecure = 'tls';  // or 'ssl' for port 465
-                $mail->Port = 587;  // or 465 for SSL
-
-                $mail->setFrom('tengteng8132002@gmail.com');
-                $mail->addAddress($email);
-                $mail->isHTML(true);
-
-                $mail->Subject = 'OTP - Clinic Harmony';
-                $mail->Body = 'Dear Customer, your OTP is '.$otp_code.', thank you for choosing Clinic Harmony!';
-
-                $mail->send();
-                echo "<script>window.location= \"login_otp.php\"; </script>";
-
-                $_SESSION['identifier']=$_POST['email']; 
-                $_SESSION['user_type']='doctor';
-                include("sessionexpirationmodule/session_expiration.php");  
-
-            }else{
-                echo "<script> alert('Login failed! Please try again');window.location= \"login.php\"; </script>";
-            }   
-            }  
 ?>
 
 <!DOCTYPE html>
@@ -428,37 +371,27 @@ Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this
         
         <div class="line-1"></div>
 
-            <h1 class="title"><center>Login</center></h1>
+            <h1 class="title"><center>OTP has been sent to your email</center></h1>
             
             <form action="#" method="post" class="row g-3 needs-validation justify-content-md-center" novalidate>
- 
-                <div class="col-md-8">
-                    <label for="validationCustom01" class="form-label">Email address : </label>
-                    <input name="email" type="text" class="form-control" id="validationCustom01" placeholder="Enter your email address" required>
-                    <div class="invalid-feedback">
-                        Please enter your email address.
-                    </div>
-                </div>
 
                <div class="col-md-8">
-                    <label for="inputPassword6" class="form-label">Password :</label>
+                    <label for="inputPassword6" class="form-label">OTP :</label>
                     <div class="col-auto">
-                      <input name="password" type="password" id="inputPassword6" class="form-control" placeholder="Enter your password" aria-describedby="passwordHelpInline" required>
+                      <input name="otp" type="text" id="otp" class="form-control" placeholder="Enter your OTP" aria-describedby="otp" required>
                     </div>
                     <div class="invalid-feedback">
-                          Please enter your password.
+                          Please enter your OTP.
                     </div>
                </div>
 
 
                 <div class="col-md-8">
-                    <center><input class="btn" name="signin" type="submit" value="Login"></center>
+                    <center><input class="btn" name="otp_submit" type="submit" value="Submit OTP"></center>
                 </div>
             </form>
             
-         <div id="register">
-            <p><a href="register.php">Create an account now!</a> </p>
-        </div>
+         
 
             
       <footer>
