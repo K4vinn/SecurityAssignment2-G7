@@ -11,7 +11,7 @@ if (!isset($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
-if (isset($_POST['signin'])) {
+if (isset($_POST['signin'])) { 
     if (!empty($_POST['csrf_token']) && hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
         $dbc = mysqli_connect("localhost", "root", "");
         mysqli_select_db($dbc, "clinic_reservation");
