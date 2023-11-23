@@ -5,6 +5,7 @@ use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
 session_start();
+include("sessionexpirationmodule/session_expiration.php"); 
 
 if (isset($_POST['save'])) {
     if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {

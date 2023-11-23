@@ -1,5 +1,6 @@
 <?php
 session_start();
+include("sessionexpirationmodule/session_expiration.php"); 
 
 $dbc = mysqli_connect("localhost", "root", "");
 mysqli_select_db($dbc, "clinic_reservation");

@@ -1,6 +1,12 @@
 <?php
-session_start();
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+require 'PHPMailer/src/Exception.php';
+require 'PHPMailer/src/PHPMailer.php';
+require 'PHPMailer/src/SMTP.php';
+session_start();
 // Generate CSRF token
 if (!isset($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -24,8 +30,33 @@ if (isset($_POST['signin'])) {
 
         if ($row = mysqli_fetch_assoc($result)) {
             if (password_verify($password, $row['doctor_password'])) {
-                echo "<script>alert('You have successfully logged in!'); window.location = 'timetable_doctor.php';</script>";
+
+                $otp_code = (int)substr(number_format(time() * rand(), 0, '', ''), 0, 6);
+                $_SESSION['otp_code'] = $otp_code;
+                $mail = new PHPMailer(true);
+
+                //Server settings
+                $mail->isSMTP();
+                $mail->Host = 'smtp.gmail.com';
+                $mail->SMTPAuth = true;
+                $mail->Username = 'tengteng8132002@gmail.com';
+                $mail->Password = 'zzvmemdazozxzadq';
+                $mail->SMTPSecure = 'tls';  // or 'ssl' for port 465
+                $mail->Port = 587;  // or 465 for SSL
+
+                $mail->setFrom('tengteng8132002@gmail.com');
+                $mail->addAddress($email);
+                $mail->isHTML(true);
+
+                $mail->Subject = 'OTP - Clinic Harmony';
+                $mail->Body = 'Dear Customer, your OTP is ' . $otp_code . ', thank you for choosing Clinic Harmony!';
+
+                $mail->send();
+                $_SESSION['user_type'] = 'doctor';
                 $_SESSION['identifier'] = $email;
+
+                echo "<script>window.location= \"login_otp.php\"; </script>";
+                include("sessionexpirationmodule/session_expiration.php");
             } else {
                 echo "<script>alert('Login failed! Please try again.'); window.location = 'login.php';</script>";
             }
@@ -43,8 +74,33 @@ if (isset($_POST['signin'])) {
 
         if ($row = mysqli_fetch_assoc($result2)) {
             if (password_verify($password, $row['user_password'])) {
-                echo "<script>alert('You have successfully logged in!'); window.location = 'timetable.php';</script>";
-                $_SESSION['identifier'] = $email;
+                $otp_code = (int)substr(number_format(time() * rand(), 0, '', ''), 0, 6);
+                $_SESSION['otp_code'] = $otp_code;
+                $mail = new PHPMailer(true);
+
+                //Server settings
+                $mail->isSMTP();
+                $mail->Host = 'smtp.gmail.com';
+                $mail->SMTPAuth = true;
+                $mail->Username = 'tengteng8132002@gmail.com';
+                $mail->Password = 'zzvmemdazozxzadq';
+                $mail->SMTPSecure = 'tls';  // or 'ssl' for port 465
+                $mail->Port = 587;  // or 465 for SSL
+
+                $mail->setFrom('tengteng8132002@gmail.com');
+                $mail->addAddress($email);
+                $mail->isHTML(true);
+
+                $mail->Subject = 'OTP - Clinic Harmony';
+                $mail->Body = 'Dear Customer, your OTP is ' . $otp_code . ', thank you for choosing Clinic Harmony!';
+
+                $mail->send();
+                $_SESSION['user_type'] = 'user';
+                $_SESSION['identifier'] = $_POST['email'];
+
+                include("sessionexpirationmodule/session_expiration.php");
+
+                echo "<script>window.location= \"login_otp.php\"; </script>";
             } else {
                 echo "<script>alert('Login failed! Please try again.'); window.location = 'login.php';</script>";
             }
@@ -58,9 +114,15 @@ if (isset($_POST['signin'])) {
         echo "<script>alert('CSRF token validation failed.'); window.location = 'login.php';</script>";
     }
 }
+
+
 ?>
 
 <!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this template
+-->
 <html>
 
 <head>
